@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -42,12 +41,40 @@ public class SeleniumUtilService : ISeleniumUtilService
         }
     }
 
-    public IWebElement GetElementLinkByCssSelector(IWebElement element,string cssSelector){
-        try {
+    public bool CheckExistsXpathOnHtml(HtmlDocument htmlDoc, string xpath)
+    {
+        try
+        {
+            var data = htmlDoc.DocumentNode.SelectSingleNode(xpath);
+            return (data != null) ? true : false;
+        }
+        catch 
+        {
+            return false;
+        }
+    }
+
+    public void ClickByXpath(string xpath)
+    {
+        try
+        {
+            _driver.FindElement(By.XPath(xpath)).Click();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error while clicking on element: {xpath}.", ex);
+        }
+    }
+
+    public IWebElement GetElementLinkByCssSelector(IWebElement element, string cssSelector)
+    {
+        try
+        {
             var link = element.FindElement(By.CssSelector(cssSelector));
             return link;
         }
-        catch(Exception ex) {
+        catch (Exception ex)
+        {
             throw new Exception("Error while getting link by selector.", ex);
         }
     }
@@ -64,22 +91,25 @@ public class SeleniumUtilService : ISeleniumUtilService
         }
     }
 
-    public HtmlDocument GetHtmlDocumentFromUrl(string url){
-        try {
+    public HtmlDocument GetHtmlDocumentFromUrl(string url)
+    {
+        try
+        {
             HtmlWeb web = new HtmlWeb();
             var htmlDoc = web.Load(url);
             return htmlDoc;
         }
-        catch(Exception ex) {
+        catch (Exception ex)
+        {
             throw new Exception("Error while getting Html page.", ex);
         }
     }
 
-    public string GetDataFromHtmlDoc(HtmlDocument htmlDoc, string xPath)
+    public HtmlNode GetDataFromHtmlDoc(HtmlDocument htmlDoc, string xPath)
     {
         try
         {
-            var data = htmlDoc.DocumentNode.SelectSingleNode(xPath).InnerHtml;
+            var data = htmlDoc.DocumentNode.SelectSingleNode(xPath);
             return data;
         }
         catch (Exception ex)

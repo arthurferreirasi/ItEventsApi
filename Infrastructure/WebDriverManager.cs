@@ -12,7 +12,7 @@ namespace RpaAlura.Infrastructure
             if (_driver == null)
             {
                 var options = new ChromeOptions();
-                options.AddArgument("--headless"); // Comment here if you want to see the magic happening
+                options.AddArgument("--headless");
                 options.AddArgument("--disable-gpu");
                 _driver = new ChromeDriver(options);
             }
@@ -21,7 +21,6 @@ namespace RpaAlura.Infrastructure
 
         public void Dispose()
         {
-            _driver?.Quit();
             _driver?.Close();
         }
     }

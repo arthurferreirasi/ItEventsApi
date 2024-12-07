@@ -1,7 +1,5 @@
-using System.Collections.ObjectModel;
+using HtmlAgilityPack;
 using Microsoft.Extensions.Options;
-using OpenQA.Selenium;
-using OpenQA.Selenium.DevTools.V129.Debugger;
 
 public class SymplaService : ISymplaService
 {
@@ -23,10 +21,19 @@ public class SymplaService : ISymplaService
             {
                 throw new Exception("Unable to identify events grid");
             };
-            var listElements = _util.GetWebElementByCssSelector("body > main > div > div.zbqpbg3 > div > div._1g71xxu0._1g71xxu1");
-            if (listElements.Count > 0)
+            var html = _util.GetHtmlDocumentFromUrl(_settings.TechnologyAddress);
+            var divNode = _util.GetDataFromHtmlDoc(html, "//div[contains(@class, '_1g71xxu0')]");
+
+            if (divNode != null)
             {
-                events = this.AddEventsToList(events, listElements);
+                var linkNodes = divNode.SelectNodes(".//a");
+
+                var linksItem = this.BuildLinksPack(linkNodes);
+                events = this.AddEventsToList(events, linksItem);
+            }
+            else
+            {
+                throw new Exception("Unable to find grid with all events.");
             }
             return events;
         }
@@ -36,45 +43,80 @@ public class SymplaService : ISymplaService
         }
     }
 
-    private List<Events> AddEventsToList(List<Events> events, ReadOnlyCollection<IWebElement> listElements)
+    private List<string> BuildLinksPack(HtmlNodeCollection linkNodes)
+    {
+        List<string> links = new List<string>();
+        foreach (var linkNode in linkNodes)
+        {
+            var href = linkNode.GetAttributeValue("href", string.Empty);
+            if (!string.IsNullOrEmpty(href))
+            {
+                links.Add(href);
+            }
+        }
+        return links;
+    }
+
+    private List<Events> AddEventsToList(List<Events> events, List<string> links)
     {
         try
         {
-            foreach (var element in listElements)
+            foreach (var urlItem in links)
             {
-                var linkElement = _util.GetElementLinkByCssSelector(element, "a.sympla-card pn67h10 pn67h11");
-                var urlItem = linkElement.GetDomAttribute("href");
                 var htmlItem = _util.GetHtmlDocumentFromUrl(urlItem);
-
-                events.Add(new Events()
+                if (!_util.CheckExistsXpathOnHtml(htmlItem, "//div[contains(@class, 'sc-cc6dd638-0 sc-d4d5091a-6 TmdRk')]"))
                 {
-                    Name = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/h1"),
-                    Description = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/section[3]/div/div/div[1]"),
-                    Location = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span"),
-                    StartDate = this.FormatDate( _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p"), true),
-                    EndDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p"), false),
-                    IsOnline = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").Contains("Evento Online")? true : false,
-                });
+                    events.Add(new Events()
+                    {
+                        Name = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/h1").InnerText,
+                        Description = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/section[3]/div/div/div[1]").InnerText,
+                        Location = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText,
+                        StartDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, true),
+                        EndDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, false),
+                        IsOnline = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText.Contains("Evento Online") ? true : false,
+                    });
+                }
+
             }
             return events;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw;
+            throw new Exception(ex.Message, ex);
         }
+    }
+
+    private bool IsOneDay(string inputDate)
+    {
+        return !inputDate.Contains(">") && !inputDate.Contains("&gt;");
     }
 
     private DateTime FormatDate(string inputDate, bool isStart)
     {
-        string[] parts = inputDate.Split('>');
-        string dateFormat = "dd MMM - yyyy • HH:mm";
-        if (isStart)
+        if (IsOneDay(inputDate))
         {
-            return DateTime.ParseExact(parts[0].Trim(), dateFormat, null);
+            return DateTime.ParseExact(inputDate, "dd MMM - yyyy • HH:mm", null);
         }
         else
         {
-            return DateTime.ParseExact(parts[1].Trim(), dateFormat, null);
+            string separator = inputDate.Contains(">") ? ">" : "&gt;";
+            string[] parts = inputDate.Split(separator);
+            string date = isStart ? parts[0].Trim() : parts[1].Trim();
+
+            var dicMonth = new Dictionary<string, string>
+            {
+                { "jan", "01" }, { "fev", "02" }, { "mar", "03" },
+                { "abr", "04" }, { "mai", "05" }, { "jun", "06" },
+                { "jul", "07" }, { "ago", "08" }, { "set", "09" },
+                { "out", "10" }, { "nov", "11" }, { "dez", "12" }
+            };
+
+            foreach (var month in dicMonth)
+            {
+                date = date.Replace(month.Key, month.Value);
+            }
+
+            return DateTime.ParseExact(date, "dd MM - yyyy • HH:mm", null);
         }
     }
 

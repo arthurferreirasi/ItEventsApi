@@ -7,8 +7,10 @@ public interface ISeleniumUtilService
 {
     void OpenBrowser(string path);
     bool CheckExistsByXpath(string xpath);
+    bool CheckExistsXpathOnHtml(HtmlDocument htmlDoc, string xpath);
+    void ClickByXpath(string xpath);
     ReadOnlyCollection<IWebElement> GetWebElementByCssSelector(string cssSelector);
     HtmlDocument GetHtmlDocumentFromUrl(string url);
-    string GetDataFromHtmlDoc(HtmlDocument htmlDoc, string xPath);
+    HtmlNode GetDataFromHtmlDoc(HtmlDocument htmlDoc, string xPath);
     IWebElement GetElementLinkByCssSelector(IWebElement element,string cssSelector);
 }
