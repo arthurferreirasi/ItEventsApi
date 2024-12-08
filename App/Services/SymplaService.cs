@@ -64,7 +64,9 @@ public class SymplaService : ISymplaService
             foreach (var urlItem in links)
             {
                 var htmlItem = _util.GetHtmlDocumentFromUrl(urlItem);
-                if (!_util.CheckExistsXpathOnHtml(htmlItem, "//div[contains(@class, 'sc-cc6dd638-0 sc-d4d5091a-6 TmdRk')]"))
+                if (!String.IsNullOrEmpty(htmlItem.Text)
+                && _util.CheckExistsXpathOnHtml(htmlItem, "//div[contains(@class, 'sc-cc6dd638-0 sc-d4d5091a-6 TmdRk')]") == false
+                && htmlItem.Text.Contains("Você está na fila") == false)
                 {
                     events.Add(new Events()
                     {
@@ -76,7 +78,6 @@ public class SymplaService : ISymplaService
                         IsOnline = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText.Contains("Evento Online") ? true : false,
                     });
                 }
-
             }
             return events;
         }

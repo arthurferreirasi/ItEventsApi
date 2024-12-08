@@ -13,4 +13,5 @@ public interface ISeleniumUtilService
     HtmlDocument GetHtmlDocumentFromUrl(string url);
     HtmlNode GetDataFromHtmlDoc(HtmlDocument htmlDoc, string xPath);
     IWebElement GetElementLinkByCssSelector(IWebElement element,string cssSelector);
+    void SaveToCsv(List<Events> data, string filePath);
 }

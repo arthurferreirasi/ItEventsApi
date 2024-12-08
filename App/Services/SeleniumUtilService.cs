@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -7,7 +8,7 @@ using RpaAlura.Infrastructure;
 public class SeleniumUtilService : ISeleniumUtilService
 {
     private readonly WebDriverManager _driverManager;
-    private readonly IWebDriver _driver;
+    private IWebDriver _driver;
     private readonly WebDriverWait _wait;
 
     public SeleniumUtilService(WebDriverManager driverManager)
@@ -21,6 +22,10 @@ public class SeleniumUtilService : ISeleniumUtilService
     {
         try
         {
+            if (_driver == null || !_driver.WindowHandles.Any())
+            {
+                _driver = _driverManager.GetDriver();
+            }
             _driver.Navigate().GoToUrl(path);
         }
         catch (Exception ex)
@@ -48,7 +53,7 @@ public class SeleniumUtilService : ISeleniumUtilService
             var data = htmlDoc.DocumentNode.SelectSingleNode(xpath);
             return (data != null) ? true : false;
         }
-        catch 
+        catch
         {
             return false;
         }
@@ -109,12 +114,42 @@ public class SeleniumUtilService : ISeleniumUtilService
     {
         try
         {
-            var data = htmlDoc.DocumentNode.SelectSingleNode(xPath);
-            return data;
+            if (this.CheckExistsXpathOnHtml(htmlDoc, xPath))
+            {
+                var data = htmlDoc.DocumentNode.SelectSingleNode(xPath);
+                return data;
+            }
+            else
+            {
+                return null;
+            }
         }
         catch (Exception ex)
         {
             throw new Exception("Error while getting element from Html", ex);
+        }
+    }
+
+    public void SaveToCsv(List<Events> data, string filePath)
+    {
+        var lines = new List<string>();
+        try
+        {
+            var properties = typeof(Events).GetProperties();
+            var header = string.Join(",", properties.Select(p => p.Name));
+            lines.Add(header);
+
+            foreach (var item in data)
+            {
+                var line = string.Join(",", properties.Select(p => p.GetValue(item)));
+                lines.Add(line);
+            }
+
+            File.WriteAllText(filePath, string.Join("\n", lines), Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error while saving data to csv file.", ex);
         }
     }
 
