@@ -68,15 +68,18 @@ public class SymplaService : ISymplaService
                 && _util.CheckExistsXpathOnHtml(htmlItem, "//div[contains(@class, 'sc-cc6dd638-0 sc-d4d5091a-6 TmdRk')]") == false
                 && htmlItem.Text.Contains("Você está na fila") == false)
                 {
-                    events.Add(new Events()
+                    if (_util.CheckExistsXpathOnHtml(htmlItem, "//*[@id='__next']/header/div/div[1]/a/svg/g/path[1]") == false)
                     {
-                        Name = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/h1").InnerText,
-                        Description = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/section[3]/div/div/div[1]").InnerText,
-                        Location = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText,
-                        StartDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, true),
-                        EndDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, false),
-                        IsOnline = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText.Contains("Evento Online") ? true : false,
-                    });
+                        events.Add(new Events()
+                        {
+                            Name = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/h1").InnerText,
+                            Description = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/section[3]/div/div/div[1]").InnerText,
+                            Location = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText,
+                            StartDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, true),
+                            EndDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, false),
+                            IsOnline = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText.Contains("Evento Online") ? true : false,
+                        });
+                    }
                 }
             }
             return events;
