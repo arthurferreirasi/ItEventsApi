@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
@@ -10,6 +11,7 @@ public class EventsController : ControllerBase
      }
 
     [HttpGet]
+    [Authorize]
     public IActionResult Get() { 
         try {
             var result = new List<Events>();
