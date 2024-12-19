@@ -3,7 +3,6 @@ using System.Text;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using RpaAlura.Infrastructure;
 
 public class SeleniumUtilService : ISeleniumUtilService
 {

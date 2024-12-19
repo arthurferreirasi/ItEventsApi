@@ -1,8 +1,6 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
-namespace RpaAlura.Infrastructure
-{
     public class WebDriverManager : IDisposable
     {
         private IWebDriver _driver;
@@ -24,4 +22,4 @@ namespace RpaAlura.Infrastructure
             _driver?.Close();
         }
     }
-}
+

@@ -4,3 +4,5 @@ bin/
 .env
 *.logs
 *.cache
+
+.DS_Store
