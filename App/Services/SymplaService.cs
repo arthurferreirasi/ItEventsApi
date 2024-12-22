@@ -46,14 +46,14 @@ public class SymplaService : ISymplaService
     private List<string> BuildLinksPack(HtmlNodeCollection linkNodes)
     {
         List<string> links = new List<string>();
-        foreach (var linkNode in linkNodes)
+        Parallel.ForEach(linkNodes, linkNode =>
         {
             var href = linkNode.GetAttributeValue("href", string.Empty);
             if (!string.IsNullOrEmpty(href))
             {
                 links.Add(href);
             }
-        }
+        });
         return links;
     }
 
@@ -61,7 +61,7 @@ public class SymplaService : ISymplaService
     {
         try
         {
-            foreach (var urlItem in links)
+            Parallel.ForEach(links, urlItem =>
             {
                 var htmlItem = _util.GetHtmlDocumentFromUrl(urlItem);
                 if (!String.IsNullOrEmpty(htmlItem.Text)
@@ -73,7 +73,6 @@ public class SymplaService : ISymplaService
                         events.Add(new Events()
                         {
                             Name = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/h1").InnerText,
-                            Description = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/section[3]/div/div/div[1]").InnerText,
                             Location = _util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[2]/div/span").InnerText,
                             StartDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, true),
                             EndDate = this.FormatDate(_util.GetDataFromHtmlDoc(htmlItem, "//*[@id='__next']/div[1]/section/div/div/div[1]/div/p").InnerText, false),
@@ -81,7 +80,7 @@ public class SymplaService : ISymplaService
                         });
                     }
                 }
-            }
+            });
             return events;
         }
         catch (Exception ex)
@@ -115,10 +114,10 @@ public class SymplaService : ISymplaService
                 { "out", "10" }, { "nov", "11" }, { "dez", "12" }
             };
 
-            foreach (var month in dicMonth)
+            Parallel.ForEach(dicMonth, month =>
             {
                 date = date.Replace(month.Key, month.Value);
-            }
+            });
 
             return DateTime.ParseExact(date, "dd MM - yyyy • HH:mm", null);
         }
